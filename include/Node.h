@@ -3,12 +3,14 @@
 
 #include <random>
 #include "ThreeCoord.h"
+#include <atomic>
 
 class Node
 {
 private:
   ThreeCoord<int> position;
   Node *next;
+  std::atomic<uint8_t> lock{0};
 
 public:
   Node(ThreeCoord<int> pos);
@@ -18,6 +20,8 @@ public:
   void setPosition(ThreeCoord<int> pos);
   Node *getNext() const { return next; }
   void setNext(Node *n) { next = n; }
+  bool try_lock();
+  void release_lock();
 };
 
 #endif

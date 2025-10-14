@@ -29,3 +29,12 @@ ThreeCoord<int> Node::getPosition() const {
 void Node::setPosition(ThreeCoord<int> pos) {
   position = pos;
 }
+
+bool Node::try_lock() {
+  uint8_t expected = 0;
+  return lock.compare_exchange_strong(expected, 1);
+}
+
+void Node::release_lock() {
+  lock.store(0);
+}

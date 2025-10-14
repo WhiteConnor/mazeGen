@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
   auto t2 = std::chrono::high_resolution_clock::now();
   std::chrono::duration<float, std::milli> fp_ms = t2 - t1;
   printf("Time is: %f ms\n", fp_ms.count());
-  // printFlatMaze(maze, d, cursor);
+  printFlatMaze(maze, d, cursor);
 
   std::ofstream fileout("maze.mze");
   fileout << d.x << d.y << d.z;
