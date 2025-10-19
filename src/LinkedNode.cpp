@@ -1,4 +1,6 @@
 #include "LinkedNode.h"
+#include <atomic>
+#include "mazeUtils.h"
 
 LinkedNode::LinkedNode(ThreeCoord<int> pos) {
   append(pos);
@@ -35,18 +37,27 @@ void LinkedNode::removeAt(ThreeCoord<int> pos) {
   }
 }
 
-ThreeCoord<int> LinkedNode::getRandom(std::mt19937 &gen)
-{
+ThreeCoord<int> LinkedNode::getRandom(std::atomic<uint8_t> *maze, ThreeCoord<int> d, std::mt19937 &gen) {
   int choice = gen() % nodeCount;
   Node *current = head;
-  for (int i = 0; i < choice; i++) {
-    if (current->getNext() != nullptr) {
-      current = current->getNext();
+  bool chosen = true;
+  do {
+    for (int i = 0; i < choice; i++) {
+      if (current->getNext() != nullptr) {
+        current = current->getNext();
+      } else {
+        return current->getPosition(); 
+      }
+      if (!hasAvailable(maze, d, current->getPosition())) {
+        if (current->tryLock()) {
+          ThreeCoord<int> toRemove = current->getPosition();
+          current = head;
+          removeAt(toRemove);
+          chosen = false;
+        }
+      }
     }
-    else {
-      return current->getPosition(); 
-    }
-  }
+  } while (!chosen || current->getLocked() || !current->getPosition());
   return current->getPosition();
 }
 

@@ -20,8 +20,9 @@ public:
   void setPosition(ThreeCoord<int> pos);
   Node *getNext() const { return next; }
   void setNext(Node *n) { next = n; }
-  bool try_lock();
-  void release_lock();
+  bool tryLock();
+  void releaseLock();
+  bool getLocked() const;
 };
 
 #endif

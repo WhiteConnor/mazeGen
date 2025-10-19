@@ -30,11 +30,15 @@ void Node::setPosition(ThreeCoord<int> pos) {
   position = pos;
 }
 
-bool Node::try_lock() {
+bool Node::tryLock() {
   uint8_t expected = 0;
   return lock.compare_exchange_strong(expected, 1);
 }
 
-void Node::release_lock() {
+void Node::releaseLock() {
   lock.store(0);
+}
+
+bool Node::getLocked() const {
+  return lock.load();
 }

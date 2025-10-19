@@ -13,9 +13,10 @@ private:
 public:
   LinkedNode(ThreeCoord<int> pos);
   ~LinkedNode();
-
+  
+  Node *getHead() const {return head; }
   void removeAt(ThreeCoord<int> pos);
-  ThreeCoord<int> getRandom(std::mt19937 &gen);
+  ThreeCoord<int> getRandom(std::atomic<uint8_t> *maze, ThreeCoord<int> d, std::mt19937 &gen);
   const int getNodeCount();
   void append(ThreeCoord<int> pos);
 };

@@ -12,6 +12,8 @@
 #include "ThreeCoord.h"
 #include "mazeUtils.h"
 #include "LinkedNode.h"
+#include <omp.h>
+#include <atomic>
 
 ThreeCoord<int> halls;
 
@@ -83,16 +85,19 @@ int main(int argc, char *argv[])
   ThreeCoord<int> d = ThreeCoord((halls.x * 2) + 1, (halls.y * 2) + 1, (halls.z * 2) + 1);
   
   // Create a uint8_t maze array
-  uint8_t *maze = new uint8_t[d.vol()];
+  std::atomic<uint8_t> *maze = new std::atomic<uint8_t>[d.vol()];
   // Ensure that maze is initialized to zero
-  std::memset(maze, 0, d.vol());
+  #pragma omp parallel for
+  for (int i = 0; i < d.vol(); i++) {
+    (*(maze + i)).store(0);
+  }
 
   // Start in the corner
   ThreeCoord<int> cursor = ThreeCoord(halls.x / 2, halls.y / 2, halls.z / 2);
   cursor.x = (cursor.x * 2) + 1;
   cursor.y = (cursor.y * 2) + 1;
   cursor.z = (cursor.z * 2) + 1;
-  *(maze + access(cursor, d)) = 1; // init maze
+  (*(maze + access(cursor, d))).store(1); // init maze
 
   LinkedNode list = LinkedNode(cursor);
 
@@ -108,31 +113,15 @@ int main(int argc, char *argv[])
   // if cursor has available locations and not reached 10 steps steps, step cursor, otherwise if cursor has
   // no available locations remove from list and choose new
   // else if reached 10 steps choose new
-  for (int i = 0; i < halls.vol() - 1; i++) {
-    if ((i % 10) == 9) {
-      cursor = step(maze, cursor, d, gen, dis, list);
-    } else {
-      cursor = ThreeCoord<int>(0,0,0);
-    }
-    while (!cursor) {
-      if (list.getNodeCount() == 0) {
-        i = halls.vol();
-        break;
-      }
-      cursor = list.getRandom(gen);
-      cursor = step(maze, cursor, d, gen, dis, list);
-    }
-    if (cursor) {
-      list.append(cursor);
-    }
-  }
+  walk(maze, d, list, gen, dis, halls);
+
   auto t2 = std::chrono::high_resolution_clock::now();
   std::chrono::duration<float, std::milli> fp_ms = t2 - t1;
   printf("Time is: %f ms\n", fp_ms.count());
   printFlatMaze(maze, d, cursor);
 
   std::ofstream fileout("maze.mze");
-  fileout << d.x << d.y << d.z;
+  fileout << (uint32_t) d.x << (uint32_t) d.y << (uint32_t) d.z;
   for (int i = 0; i < d.vol(); i++){
     fileout << *(maze + i);
   }
