@@ -1,3 +1,6 @@
 build/
 maze.mze
 mazeGen.x
+*.o
+*.mze
+*.x
